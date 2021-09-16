@@ -82,7 +82,7 @@ class _DateFormFieldState extends FormFieldState<DateTime> {}
 ///
 /// Shows an [_InputDropdown] that'll trigger [DateTimeField._selectDate] whenever the user
 /// clicks on it ! The date picker is **platform responsive** (ios date picker style for ios, ...)
-class DateTimeField extends StatelessWidget {
+class DateTimeField extends StatefulWidget {
   DateTimeField({
     Key? key,
     required this.onDateSelected,
@@ -93,6 +93,8 @@ class DateTimeField extends StatelessWidget {
     this.mode = DateTimeFieldPickerMode.dateAndTime,
     this.initialEntryMode = DatePickerEntryMode.calendar,
     this.dateTextStyle,
+    this.showClearButton = false,
+    this.onResetPressed,
     DateTime? firstDate,
     DateTime? lastDate,
     DateFormat? dateFormat,
@@ -108,6 +110,8 @@ class DateTimeField extends StatelessWidget {
     this.decoration,
     this.enabled,
     this.dateTextStyle,
+    this.showClearButton = false,
+    this.onResetPressed,
     this.initialEntryMode = DatePickerEntryMode.calendar,
     DateTime? firstDate,
     DateTime? lastDate,
@@ -151,6 +155,25 @@ class DateTimeField extends StatelessWidget {
   /// The initial entry mode for the material date picker dialog
   final DatePickerEntryMode initialEntryMode;
 
+  /// shows a clear button (x) icon that when pressed, it resets the field value
+  /// either this or inputDecoration suffix icon can be used. if both used then the clear icon will stack over it
+  final bool showClearButton;
+
+  /// applicable only if [showClearButton] is set to true
+  final Function? onResetPressed;
+
+  @override
+  State<DateTimeField> createState() => _DateTimeFieldState();
+}
+
+class _DateTimeFieldState extends State<DateTimeField> {
+  DateTime? selectedDate;
+  @override
+  void initState() {
+    super.initState();
+    selectedDate = widget.selectedDate;
+  }
+
   /// Shows a dialog asking the user to pick a date !
   Future<void> _selectDate(BuildContext context) async {
     final DateTime initialDateTime = selectedDate ?? DateTime.now();
@@ -162,11 +185,11 @@ class DateTimeField extends StatelessWidget {
           return Container(
             height: _kCupertinoDatePickerHeight,
             child: CupertinoDatePicker(
-              mode: _cupertinoModeFromPickerMode(mode),
-              onDateTimeChanged: onDateSelected!,
+              mode: _cupertinoModeFromPickerMode(widget.mode),
+              onDateTimeChanged: widget.onDateSelected!,
               initialDateTime: initialDateTime,
-              minimumDate: firstDate,
-              maximumDate: lastDate,
+              minimumDate: widget.firstDate,
+              maximumDate: widget.lastDate,
             ),
           );
         },
@@ -175,14 +198,14 @@ class DateTimeField extends StatelessWidget {
       DateTime _selectedDateTime = initialDateTime;
 
       if ([DateTimeFieldPickerMode.dateAndTime, DateTimeFieldPickerMode.date]
-          .contains(mode)) {
+          .contains(widget.mode)) {
         final DateTime? _selectedDate = await showDatePicker(
           context: context,
-          initialDatePickerMode: initialDatePickerMode!,
+          initialDatePickerMode: widget.initialDatePickerMode!,
           initialDate: initialDateTime,
-          initialEntryMode: initialEntryMode,
-          firstDate: firstDate,
-          lastDate: lastDate,
+          initialEntryMode: widget.initialEntryMode,
+          firstDate: widget.firstDate,
+          lastDate: widget.lastDate,
         );
 
         if (_selectedDate != null) {
@@ -193,7 +216,7 @@ class DateTimeField extends StatelessWidget {
       }
 
       if ([DateTimeFieldPickerMode.dateAndTime, DateTimeFieldPickerMode.time]
-          .contains(mode)) {
+          .contains(widget.mode)) {
         final TimeOfDay? _selectedTime = await showTimePicker(
           initialTime: TimeOfDay.fromDateTime(initialDateTime),
           context: context,
@@ -210,7 +233,8 @@ class DateTimeField extends StatelessWidget {
         }
       }
 
-      onDateSelected!(_selectedDateTime);
+      widget.onDateSelected!(_selectedDateTime);
+      selectedDate = _selectedDateTime;
     }
   }
 
@@ -218,33 +242,53 @@ class DateTimeField extends StatelessWidget {
   Widget build(BuildContext context) {
     String? text;
 
-    if (selectedDate != null) text = dateFormat.format(selectedDate!);
+    if (selectedDate != null) text = widget.dateFormat.format(selectedDate!);
 
     TextStyle? textStyle;
 
     if (text == null) {
-      textStyle = decoration!.hintStyle ??
+      textStyle = widget.decoration!.hintStyle ??
           Theme.of(context).inputDecorationTheme.hintStyle;
     } else {
-      textStyle = dateTextStyle ?? dateTextStyle;
+      textStyle = widget.dateTextStyle ?? widget.dateTextStyle;
     }
 
-    final bool shouldDisplayLabelText = (text ?? decoration!.hintText) != null;
+    final bool shouldDisplayLabelText = (text ?? widget.decoration!.hintText) != null;
 
-    InputDecoration? effectiveDecoration = decoration;
+    InputDecoration? effectiveDecoration = widget.decoration;
 
     if (!shouldDisplayLabelText) {
       effectiveDecoration = effectiveDecoration!.copyWith(labelText: '');
     }
 
-    return _InputDropdown(
-      text: text ??
-          decoration!.hintText ??
-          decoration!.labelText ??
-          'Select date',
-      textStyle: textStyle,
-      decoration: effectiveDecoration,
-      onPressed: enabled! ? () => _selectDate(context) : null,
+    return Stack(
+      children: [
+        _InputDropdown(
+          text: text ??
+              widget.decoration!.hintText ??
+              widget.decoration!.labelText ??
+              'Select date',
+          textStyle: textStyle,
+          decoration: effectiveDecoration,
+          onPressed: widget.enabled! ? () => _selectDate(context) : null,
+        ),
+        Visibility(
+          visible: widget.showClearButton,
+          child: PositionedDirectional(
+             end: 0,
+             top: 5,
+             child: IconButton(
+               icon: const Icon(Icons.clear),
+               splashRadius: 15,
+               onPressed: (){
+                 if(widget.onResetPressed!=null)     
+                    widget.onResetPressed!();          
+                 setState(() {
+                   selectedDate = null;
+                 });
+            },)),
+        )
+      ],
     );
   }
 }

@@ -45,6 +45,8 @@ class _MyHomePageState extends State<MyHomePage> {
             child: Text('DateTimeField'),
           ),
           DateTimeField(
+            showClearButton: true,
+            onResetPressed: ()=>selectedDate=null,
               decoration: const InputDecoration(
                   hintText: 'Please select your birthday date and time'),
               selectedDate: selectedDate,
