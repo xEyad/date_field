@@ -24,6 +24,8 @@ class DateTimeFormField extends FormField<DateTime> {
     DateTime? initialValue,
     AutovalidateMode? autovalidateMode,
     bool enabled = true,
+    Function? onResetPressed,
+    bool showClearButton = false,
     TextStyle? dateTextStyle,
     DateFormat? dateFormat,
     DateTime? firstDate,
@@ -34,7 +36,7 @@ class DateTimeFormField extends FormField<DateTime> {
     DatePickerMode initialDatePickerMode = DatePickerMode.day,
     DateTimeFieldPickerMode mode = DateTimeFieldPickerMode.dateAndTime,
   }) : super(
-          key: key,
+          key: key,          
           initialValue: initialValue,
           onSaved: onSaved,
           validator: validator,
@@ -59,6 +61,8 @@ class DateTimeFormField extends FormField<DateTime> {
             return DateTimeField(
               firstDate: firstDate,
               lastDate: lastDate,
+              onResetPressed: onResetPressed,
+              showClearButton: showClearButton,
               decoration: effectiveDecoration,
               initialDatePickerMode: initialDatePickerMode,
               dateFormat: dateFormat,
