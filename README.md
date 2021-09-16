@@ -15,7 +15,9 @@ In the `pubspec.yaml` of your flutter project, add the following dependency:
 ```yaml
 dependencies:
   ...
-  date_field: ^2.0.1
+  date_field: #based on version ^2.0.1
+    git:      
+      url: git://github.com/xEyad/date_field.git
 ```
 
 In your library add the following import:
