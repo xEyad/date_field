@@ -266,6 +266,7 @@ class _DateTimeFieldState extends State<DateTimeField> {
     }
 
     return Stack(
+      clipBehavior: Clip.none,
       children: [
         _InputDropdown(
           text: text ??
